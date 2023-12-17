@@ -12,8 +12,7 @@ DB_URL = "postgresql+psycopg://postgres:B3bcbdcd5b654-FdecGEf35cc353E3aD@viaduct
 engine = create_engine(DB_URL)
 conn = engine.connect()
 
-Session = sessionmaker(bind=engine)
-session = Session()
+
 
 
 class Employer(Base):
@@ -37,9 +36,6 @@ class Job(Base):
 
 Base.metadata.create_all(engine)
 
-# emp1=Employer(id=1, name="Archit", contact_email="aaaa", industry="Tech")
-# session.add(emp1)
-
 employers_data = [
     {"id": 1, "name": "MetaTechA", "contact_email": "contact@company-a.com", "industry": "Tech"},
     {"id": 2, "name": "MoneySoftB", "contact_email": "contact@company-b.com", "industry": "Finance"},
@@ -52,14 +48,24 @@ jobs_data = [
     {"id": 4, "title": "Manager", "description": "Manage people who manage records", "employer_id": 2},
 ]
 
-for employer in employers_data:
-    emp = Employer(**employer)
-    session.add(emp)
 
-for job in jobs_data:
-    session.add(Job(**job))
+def prepare_database():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
 
-session.commit()
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+
+    for employer in employers_data:
+        emp = Employer(**employer)
+        session.add(emp)
+
+    for job in jobs_data:
+        session.add(Job(**job))
+
+    session.commit()
+    session.close()
 
 class EmployerObject(ObjectType):
     id = Int()
@@ -102,6 +108,11 @@ class Query(ObjectType):
 
 schema = Schema(query=Query)
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    prepare_database()
+
 
 app.mount("/graphql", GraphQLApp(schema=schema, on_get=make_graphiql_handler()))
 app.mount("/graphql-p", GraphQLApp(schema=schema, on_get=make_playground_handler()))
