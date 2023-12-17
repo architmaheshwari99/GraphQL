@@ -14,13 +14,16 @@ class CreateUser(Mutation):
 
     user = Field(UserType)
 
-    def mutate(self, info, name, age):
+    @staticmethod
+    def mutate(root, info, name, age):
         user = {"id": len(Query.users)+1, "name": name, "age": age}
         Query.users.append(user)
+        # GraphQL schema expects the result of the mutation to be of the same type as mutation itself
         return CreateUser(user=user)
 
 
 class Mutation(ObjectType):
+    # Think of this as a resolver for the mutation
     create_user = CreateUser.Field()
 
 
@@ -35,12 +38,15 @@ class Query(ObjectType):
         {"id": 4, "name": "Adam Smith", "age": 36}
     ]
 
-    def resolve_user(self, info, user_id):
+    @staticmethod
+    def resolve_user(root, info, user_id):
         matched_users = [user for user in Query.users if user["id"] == user_id]
         return matched_users[0] if matched_users else {"id": 4, "name": "Adam Smith", "age": 36}
 
-    def resolve_users_by_min_age(self, info, min_age):
+    @staticmethod
+    def resolve_users_by_min_age(root, info, min_age):
         return [user for user in Query.users if user["age"] >= min_age]
+
 
 schema = Schema(query=Query, mutation=Mutation)
 
