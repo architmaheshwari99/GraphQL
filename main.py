@@ -4,13 +4,16 @@ from starlette_graphene3 import GraphQLApp, make_graphiql_handler, make_playgrou
 
 from sqlalchemy import create_engine, Column, Integer, String as saString, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker
 
 Base = declarative_base()
 
 DB_URL = "postgresql+psycopg://postgres:B3bcbdcd5b654-FdecGEf35cc353E3aD@viaduct.proxy.rlwy.net:33325/railway"
 engine = create_engine(DB_URL)
 conn = engine.connect()
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 class Employer(Base):
@@ -32,8 +35,10 @@ class Job(Base):
     employer = relationship("Employer", back_populates="jobs")
 
 
-
 Base.metadata.create_all(engine)
+
+# emp1=Employer(id=1, name="Archit", contact_email="aaaa", industry="Tech")
+# session.add(emp1)
 
 employers_data = [
     {"id": 1, "name": "MetaTechA", "contact_email": "contact@company-a.com", "industry": "Tech"},
@@ -47,6 +52,14 @@ jobs_data = [
     {"id": 4, "title": "Manager", "description": "Manage people who manage records", "employer_id": 2},
 ]
 
+for employer in employers_data:
+    emp = Employer(**employer)
+    session.add(emp)
+
+for job in jobs_data:
+    session.add(Job(**job))
+
+session.commit()
 
 class EmployerObject(ObjectType):
     id = Int()
