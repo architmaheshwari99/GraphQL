@@ -1,6 +1,6 @@
 from graphene import ObjectType, List
 
-from db.data import jobs_data
+from db.data import jobs_data, employers_data
 from gql.types import EmployerObject, JobObject
 
 

@@ -7,14 +7,12 @@ from db.models import Employer, Job, Base
 
 engine = create_engine(DB_URL)
 conn = engine.connect()
-
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def prepare_database():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-    session = Session()
 
 
     for employer in employers_data:
