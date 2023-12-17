@@ -1,6 +1,8 @@
 from graphene import ObjectType, String, Int, List, Field
 
 from db.data import jobs_data, employers_data
+from db.database import Session
+from db.models import Job, Employer
 
 
 class EmployerObject(ObjectType):
@@ -12,7 +14,10 @@ class EmployerObject(ObjectType):
 
     @staticmethod
     def resolve_jobs(root, info):
-        return [job for job in jobs_data if job["employer_id"] == root["id"]]
+        session = Session()
+        jobs_data = session.query(Job).filter(Job.employer_id==root.id)
+        session.close()
+        return jobs_data
 
 
 class JobObject(ObjectType):
@@ -24,5 +29,7 @@ class JobObject(ObjectType):
 
     @staticmethod
     def resolve_employer(root, info):
-        return next((employer for employer in employers_data if employer["id"] == root["employer_id"]), None)
-
+        session = Session()
+        employers_data = session.query(Employer).filter(Employer.id==root.employer_id)
+        session.close()
+        return employers_data
