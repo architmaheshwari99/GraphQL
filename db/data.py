@@ -9,3 +9,17 @@ jobs_data = [
     {"id": 3, "title": "Accountant", "description": "Manage financial records", "employer_id": 2},
     {"id": 4, "title": "Manager", "description": "Manage people who manage records", "employer_id": 2},
 ]
+
+users_data = [
+    {"username": "arcmahes1", "email": "abc1", "password": "abc1", "role": "staff"},
+    {"username": "arcmahes2", "email": "abc2", "password": "abc2", "role": "user"},
+    {"username": "arcmahes3", "email": "abc3", "password": "abc3", "role": "user"},
+]
+
+job_applications = [
+    {"job_id": 1, "user_id": 1},
+    {"job_id": 2, "user_id": 1},
+    {"job_id": 3, "user_id": 1},
+    {"job_id": 3, "user_id": 2},
+    {"job_id": 3, "user_id": 3},
+]

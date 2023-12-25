@@ -2,8 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from config.config import DB_URL
-from db.data import employers_data, jobs_data
-from db.models import Employer, Job, Base
+from db.data import employers_data, jobs_data, users_data, job_applications
+from db.models import Employer, Job, Base, User, JobApplication
 
 engine = create_engine(DB_URL, echo=True)
 conn = engine.connect()
@@ -23,6 +23,12 @@ def prepare_database():
     for job in jobs_data:
         del job["id"]
         session.add(Job(**job))
+
+    for user in users_data:
+        session.add(User(**user))
+
+    for job_application in job_applications:
+        session.add(JobApplication(**job_application))
 
     session.commit()
     session.close()

@@ -2,8 +2,8 @@ from graphene import ObjectType, List, Field, Int
 
 from db.data import jobs_data, employers_data
 from db.database import Session
-from db.models import Job, Employer
-from gql.types import EmployerObject, JobObject
+from db.models import Job, Employer, User, JobApplication
+from gql.types import EmployerObject, JobObject, UserObject, JobApplicationObject
 
 
 class Query(ObjectType):
@@ -11,6 +11,17 @@ class Query(ObjectType):
     employers = List(EmployerObject)
     job = Field(JobObject, id=Int())
     employer = Field(EmployerObject, id=Int())
+    users = List(UserObject)
+    applications = List(JobApplicationObject)
+
+    @staticmethod
+    def resolve_applications(root, info):
+        session = Session()
+        job_applications = session.query(JobApplication).all()
+        session.close()
+
+        return job_applications
+
 
     @staticmethod
     def resolve_employer(root, info, id):
@@ -46,6 +57,14 @@ class Query(ObjectType):
         if job:
             return job
         return Exception('job not found')
+
+    @staticmethod
+    def resolve_users(root, info):
+        session = Session()
+        users = session.query(User).all()
+        session.close()
+
+        return users
 
 
 """
