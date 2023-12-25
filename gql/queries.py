@@ -1,4 +1,4 @@
-from graphene import ObjectType, List
+from graphene import ObjectType, List, Field, Int
 
 from db.data import jobs_data, employers_data
 from db.database import Session
@@ -9,6 +9,7 @@ from gql.types import EmployerObject, JobObject
 class Query(ObjectType):
     jobs = List(JobObject)
     employers = List(EmployerObject)
+    job = Field(JobObject, id=Int())
 
     @staticmethod
     def resolve_jobs(root, info):
@@ -23,3 +24,14 @@ class Query(ObjectType):
         employers = session.query(Employer).all()
         session.close()
         return employers
+
+
+    @staticmethod
+    def resolve_job(root, info, id):
+        session = Session()
+        job = session.query(Job).filter(Job.id == id).first()
+        session.close()
+
+        if job:
+            return job
+        return Exception('job not found')
