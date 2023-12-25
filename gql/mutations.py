@@ -106,7 +106,7 @@ class UpdateEmployer(Mutation):
 
 
     @staticmethod
-    def mutate(root, info, id, name, contact_email, industry):
+    def mutate(root, info, id, name=None, contact_email=None, industry=None):
         session = Session()
         employer = session.query(Employer).filter(Employer.id==id).first()
         if not employer:
