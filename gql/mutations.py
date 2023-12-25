@@ -37,10 +37,10 @@ class UpdateJob(Mutation):
     @staticmethod
     def mutate(root, info, job_id, title, description, employer_id):
         session = Session()
-        # job = session.query(Job).filter(Job.id == job_id).first()
+        job = session.query(Job).filter(Job.id == job_id).first()
         #  Avoid lazy loading
-        job = session.query(Job).options(joinedload(Job.employer))\
-            .filter(Job.id == job_id).first()
+        # job = session.query(Job).options(joinedload(Job.employer))\
+        #     .filter(Job.id == job_id).first()
         if not job:
             raise Exception('Job not found')
 
