@@ -1,8 +1,7 @@
 from graphene import ObjectType, String, Int, List, Field
-from sqlalchemy.orm import joinedload
 
 from db.database import Session
-from db.models import Job, Employer, User, JobApplication
+from db.models import Job, Employer, JobApplication
 
 
 class EmployerObject(ObjectType):
@@ -26,6 +25,8 @@ class JobObject(ObjectType):
     description = String()
     employer_id = Int()
     employer = Field(EmployerObject)
+    applications = List(lambda: JobApplicationObject)
+
 
     @staticmethod
     def resolve_employer(root, info):
@@ -34,12 +35,27 @@ class JobObject(ObjectType):
         session.close()
         return employers_data
 
+    @staticmethod
+    def resolve_applications(root, info):
+        session = Session()
+        applications = session.query(JobApplication).filter(JobApplication.job_id == root.id)
+        session.close()
+        return applications
+
 
 class UserObject(ObjectType):
     id = Int()
     username = String()
     email = String()
     role = String()
+    applications = List(lambda: JobApplicationObject)
+
+    @staticmethod
+    def resolve_applications(root, info):
+        session = Session()
+        applications = session.query(JobApplication).filter(JobApplication.user_id == root.id)
+        session.close()
+        return applications
 
 
 class JobApplicationObject(ObjectType):
