@@ -46,3 +46,24 @@ class Query(ObjectType):
         if job:
             return job
         return Exception('job not found')
+
+
+"""
+Fragments 
+query {
+  employer(id: 1) {
+    ...employerFields
+  }
+}
+
+fragment employerFields on EmployerObject {
+  id name contactEmail industry jobs {
+    ...jobFields
+  }
+}
+
+fragment jobFields on JobObject {
+  id title description employerId
+}
+
+"""
