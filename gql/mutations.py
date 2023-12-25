@@ -125,9 +125,30 @@ class UpdateEmployer(Mutation):
         return UpdateEmployer(employer=employer)
 
 
+class DeleteEmployer(Mutation):
+    class Arguments:
+        employer_id = Int(required=True)
+
+    result = Boolean()
+
+    @staticmethod
+    def mutate(root, info, employer_id):
+        session = Session()
+        employer = session.query(Employer).filter(Employer.id==employer_id).first()
+        if not employer:
+            raise Exception('Employer not found')
+        session.delete(employer)
+        session.commit()
+        session.close()
+
+        return DeleteEmployer(result=True)
+
+
 class Mutation(ObjectType):
     add_job = AddJob.Field()
     update_job = UpdateJob.Field()
     delete_job = DeleteJob.Field()
     add_employer = AddEmployer.Field()
     update_employer = UpdateEmployer.Field()
+    delete_employer = DeleteEmployer.Field()
+
