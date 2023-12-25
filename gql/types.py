@@ -1,6 +1,6 @@
 from graphene import ObjectType, String, Int, List, Field
+from sqlalchemy.orm import joinedload
 
-from db.data import jobs_data, employers_data
 from db.database import Session
 from db.models import Job, Employer
 
@@ -30,6 +30,6 @@ class JobObject(ObjectType):
     @staticmethod
     def resolve_employer(root, info):
         session = Session()
-        employers_data = session.query(Employer).filter(Employer.id==root.employer_id)
+        employers_data = session.query(Employer).filter(Employer.id == root.employer_id).first()
         session.close()
         return employers_data

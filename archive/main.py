@@ -7,7 +7,6 @@ class UserType(ObjectType):
     age = Int()
 
 
-
 class Query(ObjectType):
     user = Field(UserType, user_id=Int())
     users_by_min_age = List(UserType, min_age=Int())
@@ -81,9 +80,6 @@ class DeleteUser(Mutation):
         user = matched_users[0]
         Query.users.remove(user[1])
         return DeleteUser(result=True)
-
-
-
 
 class Mutation(ObjectType):
     # Think of this as a resolver for the mutation

@@ -4,9 +4,10 @@ from starlette_graphene3 import GraphQLApp, make_graphiql_handler, make_playgrou
 
 from db.database import prepare_database, Session
 from db.models import Employer, Job
+from gql.mutations import Mutation
 from gql.queries import Query
 
-schema = Schema(query=Query)
+schema = Schema(query=Query, mutation=Mutation)
 app = FastAPI()
 
 @app.on_event("startup")
