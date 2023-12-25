@@ -10,6 +10,17 @@ class Query(ObjectType):
     jobs = List(JobObject)
     employers = List(EmployerObject)
     job = Field(JobObject, id=Int())
+    employer = Field(EmployerObject, id=Int())
+
+    @staticmethod
+    def resolve_employer(root, info, id):
+        session = Session()
+        employer = session.query(Employer).filter(Employer.id == id).first()
+        session.close()
+
+        if employer:
+            return employer
+        return Exception('job not found')
 
     @staticmethod
     def resolve_jobs(root, info):
