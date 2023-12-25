@@ -8,7 +8,7 @@ from db.models import Job, Employer
 class EmployerObject(ObjectType):
     id = Int()
     name = String()
-    contact_name = String()
+    contact_email = String()
     industry = String()
     jobs = List(lambda: JobObject)
 
