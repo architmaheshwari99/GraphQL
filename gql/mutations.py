@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from argon2.exceptions import VerifyMismatchError
 from graphene import Mutation, String, Int, Field, ObjectType, Boolean
@@ -13,7 +13,6 @@ from argon2 import PasswordHasher
 import jwt
 
 ph = PasswordHasher()
-
 
 
 def generate_token(email):
@@ -97,6 +96,40 @@ class DeleteJob(Mutation):
         return DeleteJob(result=True)
 
 
+def get_authenticated_user(context):
+    """
+    {
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmMxIiwiZXhwIjoxNzAzNjEyMDUwfQ.jUQptBU2LvUKWg_AnMvdVDMCpVe73ewqkoKI3y9t12w",
+    }
+
+    :param context:
+    :return:
+    """
+    request_object = context.get('request')
+    auth_header = request_object.headers.get('Authorization')
+    print(request_object.headers, auth_header)
+    if auth_header:
+        token = auth_header.split(' ')[1]
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+            if datetime.now(timezone.utc) > datetime.fromtimestamp(payload["exp"], tz = timezone.utc):
+                raise GraphQLError('Token has expired')
+
+            session = Session()
+            user = session.query(User).filter(User.email == payload.get("sub")).first()
+
+            if not user:
+                raise GraphQLError('User not found')
+
+            return user
+        except jwt.exceptions.InvalidSignatureError:
+            raise GraphQLError('Invalid Authentication token')
+    else:
+        raise GraphQLError('No auth token')
+
+
 class AddEmployer(Mutation):
     class Arguments:
         name = String(required=True)
@@ -105,15 +138,18 @@ class AddEmployer(Mutation):
 
     employer = Field(EmployerObject)
 
+    authenticated_as = Field(String)
+
     @staticmethod
     def mutate(root, info, name, contact_email, industry):
+        user = get_authenticated_user(info.context)
         session = Session()
         employer = Employer(name=name, contact_email=contact_email, industry=industry)
         session.add(employer)
         session.commit()
         session.refresh(employer)
         session.close()
-        return AddEmployer(employer=employer)
+        return AddEmployer(employer=employer, authenticated_as=user.email)
 
 
 class UpdateEmployer(Mutation):
