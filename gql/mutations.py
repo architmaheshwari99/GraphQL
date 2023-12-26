@@ -37,7 +37,15 @@ def admin_user(fn):
         return resp
     return inner
 
+def authenticated_user(fn):
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        info = args[1]
+        get_authenticated_user(info.context)
+        resp = fn(*args, **kwargs)
+        return resp
 
+    return inner
 
 
 class AddJob(Mutation):
@@ -277,6 +285,7 @@ class ApplyToJobMutation(Mutation):
 
 
     @staticmethod
+    @authenticated_user
     def mutate(root, info, user_id, job_id):
         session = Session()
         application = session.query(JobApplication).filter(JobApplication.user_id==user_id, JobApplication.job_id==job_id).first()
@@ -289,7 +298,6 @@ class ApplyToJobMutation(Mutation):
         session.refresh(application)
 
         return ApplyToJobMutation(application)
-
 
 
 class Mutation(ObjectType):
