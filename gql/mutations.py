@@ -11,6 +11,7 @@ from gql.types import JobObject, EmployerObject, UserObject
 
 from argon2 import PasswordHasher
 import jwt
+from functools import wraps
 
 ph = PasswordHasher()
 
@@ -25,6 +26,19 @@ def generate_token(email):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
+def admin_user(fn):
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        info = args[1]
+        user = get_authenticated_user(info.context)
+        if user.role != 'admin':
+            raise GraphQLError('You are not authorized')
+        resp = fn(*args, **kwargs)
+        return resp
+    return inner
+
+
+
 
 class AddJob(Mutation):
     class Arguments:
@@ -35,6 +49,7 @@ class AddJob(Mutation):
     job = Field(lambda: JobObject)
 
     @staticmethod
+    @admin_user
     def mutate(root, info, title, description, employer_id):
         job = Job(title=title, description=description, employer_id=employer_id)
         session = Session()
@@ -186,7 +201,7 @@ class DeleteEmployer(Mutation):
         employer_id = Int(required=True)
 
     result = Boolean()
-
+    @admin_user
     @staticmethod
     def mutate(root, info, employer_id):
         session = Session()
