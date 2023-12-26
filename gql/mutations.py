@@ -1,6 +1,7 @@
 import string
 from random import choices
 
+from argon2.exceptions import VerifyMismatchError
 from graphene import Mutation, String, Int, Field, ObjectType, Boolean
 from graphql import GraphQLError
 from sqlalchemy.orm import joinedload
@@ -8,6 +9,10 @@ from sqlalchemy.orm import joinedload
 from db.database import Session
 from db.models import Job, Employer, User
 from gql.types import JobObject, EmployerObject
+
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
 
 
 class AddJob(Mutation):
@@ -159,8 +164,15 @@ class LoginUserMutation(Mutation):
     def mutate(root, info, email, password):
         session = Session()
         user = session.query(User).filter(User.email == email).first()
-        if not user or user.password != password:
-            raise GraphQLError('Invalid email or password')
+
+        if not user:
+            raise GraphQLError('Invalid email')
+
+        try:
+            ph.verify(user.password_hash, password)
+        except VerifyMismatchError:
+            raise GraphQLError('Invalid Password')
+
 
         token = ''.join(choices(string.ascii_lowercase, k=10))
 

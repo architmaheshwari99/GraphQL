@@ -33,7 +33,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String)
     email = Column(String)
-    password = Column(String)
+    password_hash = Column(String)
     role = Column(String)
 
     job_applications = relationship("JobApplication", back_populates="user", lazy="joined")
