@@ -1,18 +1,30 @@
-import string
-from random import choices
+from datetime import datetime, timedelta
 
 from argon2.exceptions import VerifyMismatchError
 from graphene import Mutation, String, Int, Field, ObjectType, Boolean
 from graphql import GraphQLError
-from sqlalchemy.orm import joinedload
 
+from config.config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRATION_TIME_MINUTES
 from db.database import Session
 from db.models import Job, Employer, User
 from gql.types import JobObject, EmployerObject
 
 from argon2 import PasswordHasher
+import jwt
 
 ph = PasswordHasher()
+
+
+
+def generate_token(email):
+    expiration_time = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRATION_TIME_MINUTES)
+    payload = {
+        "sub": email,
+        "exp": expiration_time
+    }
+
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
 
 
 class AddJob(Mutation):
@@ -113,11 +125,10 @@ class UpdateEmployer(Mutation):
 
     employer = Field(EmployerObject)
 
-
     @staticmethod
     def mutate(root, info, id, name=None, contact_email=None, industry=None):
         session = Session()
-        employer = session.query(Employer).filter(Employer.id==id).first()
+        employer = session.query(Employer).filter(Employer.id == id).first()
         if not employer:
             raise Exception('Employer not found')
 
@@ -143,7 +154,7 @@ class DeleteEmployer(Mutation):
     @staticmethod
     def mutate(root, info, employer_id):
         session = Session()
-        employer = session.query(Employer).filter(Employer.id==employer_id).first()
+        employer = session.query(Employer).filter(Employer.id == employer_id).first()
         if not employer:
             raise Exception('Employer not found')
         session.delete(employer)
@@ -173,8 +184,7 @@ class LoginUserMutation(Mutation):
         except VerifyMismatchError:
             raise GraphQLError('Invalid Password')
 
-
-        token = ''.join(choices(string.ascii_lowercase, k=10))
+        token = generate_token(email)
 
         return LoginUserMutation(token=token)
 
@@ -187,4 +197,3 @@ class Mutation(ObjectType):
     update_employer = UpdateEmployer.Field()
     delete_employer = DeleteEmployer.Field()
     login_user = LoginUserMutation.Field()
-
