@@ -1,8 +1,12 @@
+import string
+from random import choices
+
 from graphene import Mutation, String, Int, Field, ObjectType, Boolean
+from graphql import GraphQLError
 from sqlalchemy.orm import joinedload
 
 from db.database import Session
-from db.models import Job, Employer
+from db.models import Job, Employer, User
 from gql.types import JobObject, EmployerObject
 
 
@@ -144,6 +148,25 @@ class DeleteEmployer(Mutation):
         return DeleteEmployer(result=True)
 
 
+class LoginUserMutation(Mutation):
+    class Arguments:
+        email = String(required=True)
+        password = String(required=True)
+
+    token = String()
+
+    @staticmethod
+    def mutate(root, info, email, password):
+        session = Session()
+        user = session.query(User).filter(User.email == email).first()
+        if not user or user.password != password:
+            raise GraphQLError('Invalid email or password')
+
+        token = ''.join(choices(string.ascii_lowercase, k=10))
+
+        return LoginUserMutation(token=token)
+
+
 class Mutation(ObjectType):
     add_job = AddJob.Field()
     update_job = UpdateJob.Field()
@@ -151,4 +174,5 @@ class Mutation(ObjectType):
     add_employer = AddEmployer.Field()
     update_employer = UpdateEmployer.Field()
     delete_employer = DeleteEmployer.Field()
+    login_user = LoginUserMutation.Field()
 
