@@ -6,8 +6,8 @@ from graphql import GraphQLError
 
 from config.config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRATION_TIME_MINUTES
 from db.database import Session
-from db.models import Job, Employer, User
-from gql.types import JobObject, EmployerObject, UserObject
+from db.models import Job, Employer, User, JobApplication
+from gql.types import JobObject, EmployerObject, UserObject, JobApplicationObject
 
 from argon2 import PasswordHasher
 import jwt
@@ -268,6 +268,30 @@ class AddUserMutation(Mutation):
         return AddUserMutation(user=user)
 
 
+class ApplyToJobMutation(Mutation):
+    class Arguments:
+        user_id = Int(required=True)
+        job_id = Int(required=True)
+
+    application = Field(JobApplicationObject)
+
+
+    @staticmethod
+    def mutate(root, info, user_id, job_id):
+        session = Session()
+        application = session.query(JobApplication).filter(JobApplication.user_id==user_id, JobApplication.job_id==job_id).first()
+        if application:
+            raise GraphQLError('Already applierd to the job')
+
+        application = JobApplication(user_id=user_id, job_id=job_id)
+        session.add(application)
+        session.commit()
+        session.refresh(application)
+
+        return ApplyToJobMutation(application)
+
+
+
 class Mutation(ObjectType):
     add_job = AddJob.Field()
     update_job = UpdateJob.Field()
@@ -277,3 +301,4 @@ class Mutation(ObjectType):
     delete_employer = DeleteEmployer.Field()
     login_user = LoginUserMutation.Field()
     add_user = AddUserMutation.Field()
+    apply_to_job = ApplyToJobMutation.Field()
