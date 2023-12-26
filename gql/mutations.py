@@ -37,6 +37,18 @@ def admin_user(fn):
         return resp
     return inner
 
+def authd_user(fn):
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        info = args[1]
+        user = get_authenticated_user(info.context)
+        uid = kwargs.get('user_id')
+        if user.id != uid:
+            raise GraphQLError('You are not authorized')
+        resp = fn(*args, **kwargs)
+        return resp
+    return inner
+
 def authenticated_user(fn):
     @wraps(fn)
     def inner(*args, **kwargs):
@@ -285,7 +297,7 @@ class ApplyToJobMutation(Mutation):
 
 
     @staticmethod
-    @authenticated_user
+    @authd_user
     def mutate(root, info, user_id, job_id):
         session = Session()
         application = session.query(JobApplication).filter(JobApplication.user_id==user_id, JobApplication.job_id==job_id).first()
