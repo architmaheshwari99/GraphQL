@@ -13,7 +13,7 @@ jobs_data = [
 users_data = [
     {"username": "arcmahes1", "email": "abc1", "password": "abc1", "role": "staff"},
     {"username": "arcmahes2", "email": "abc2", "password": "abc2", "role": "user"},
-    {"username": "arcmahes3", "email": "abc3", "password": "abc3", "role": "user"},
+    {"username": "arcmahes3", "email": "abc3", "password": "abc3", "role": "admin"},
 ]
 
 job_applications = [

@@ -240,6 +240,11 @@ class AddUserMutation(Mutation):
         if user:
             raise GraphQLError('Email already in use')
 
+        user = get_authenticated_user(info.context)
+        if role == 'admin' and user.role!='admin':
+            raise GraphQLError('Admin role cannot be assigned')
+
+
         user = User(email=email, password_hash=ph.hash(password), role=role)
         session.add(user)
         session.commit()
