@@ -1,19 +1,25 @@
+import os
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 
+import jwt
+from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from dotenv import load_dotenv
 from graphene import Mutation, String, Int, Field, ObjectType, Boolean
 from graphql import GraphQLError
 
-from config.config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRATION_TIME_MINUTES
+# from config.config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRATION_TIME_MINUTES
 from db.database import Session
 from db.models import Job, Employer, User, JobApplication
 from gql.types import JobObject, EmployerObject, UserObject, JobApplicationObject
 
-from argon2 import PasswordHasher
-import jwt
-from functools import wraps
-
 ph = PasswordHasher()
+
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+TOKEN_EXPIRATION_TIME_MINUTES = os.getenv("TOKEN_EXPIRATION_TIME_MINUTES")
 
 
 def generate_token(email):

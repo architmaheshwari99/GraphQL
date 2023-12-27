@@ -31,4 +31,4 @@ def get_jobs():
     return jobs
 
 app.mount("/graphql", GraphQLApp(schema=schema, on_get=make_graphiql_handler()))
-app.mount("/graphql-p", GraphQLApp(schema=schema, on_get=make_playground_handler()))
+app.mount("/", GraphQLApp(schema=schema, on_get=make_playground_handler()))

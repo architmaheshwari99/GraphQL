@@ -1,12 +1,18 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from argon2 import PasswordHasher
 
-from config.config import DB_URL
+# from config.config import DB_URL
 from db.data import employers_data, jobs_data, users_data, job_applications
 from db.models import Employer, Job, Base, User, JobApplication
 
-engine = create_engine(DB_URL, echo=True)
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
+
+engine = create_engine(DB_URL)
 conn = engine.connect()
 Session = sessionmaker(bind=engine)
 session = Session()
